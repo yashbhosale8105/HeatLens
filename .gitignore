@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing / Build
+coverage/
+.next/
+out/
+build/
+dist/
+
+# Python / Backend
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+.pytest_cache/
+backend/python/
+backend/get-pip.py
+
+# Environment / Local Secrets
+.env
+.env*.local
+*.log
+
+# IDE / System Files
+.DS_Store
+*.pem
+.vscode/
+.idea/
