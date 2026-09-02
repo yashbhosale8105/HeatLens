@@ -1,21 +1,30 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import { Fraunces, Source_Sans_3 } from 'next/font/google';
 import { Providers } from './providers';
-import { TopNav } from '@/components/layout/TopNav';
-import { Sidebar } from '@/components/layout/Sidebar';
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
+
+const display = Fraunces({
+  subsets: ['latin'],
+  variable: '--font-display',
+  weight: ['500', '600', '700'],
+});
+
+const sans = Source_Sans_3({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  weight: ['400', '500', '600', '700'],
+});
 
 export const metadata: Metadata = {
-  title: 'HeatLens 🌡️📡 - Thane City Heat Risk Analytics',
-  description: 'Satellite-powered Land Surface Temperature monitoring and micro-grid heat analytics platform for Thane City, Maharashtra.',
+  title: 'HeatLens — Thane City heat watch',
+  description: 'Surface temperature, weather, and neighbourhood heat ranks for Thane City.',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${display.variable} ${sans.variable}`}>
       <head>
         <link
           rel="stylesheet"
@@ -24,15 +33,14 @@ export default function RootLayout({
           crossOrigin=""
         />
       </head>
-      <body className="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
+      <body>
+        <a className="skip-link" href="#main">
+          Skip to main content
+        </a>
         <Providers>
-          <TopNav />
-          <div className="flex flex-1">
-            <Sidebar />
-            <main className="flex-1 p-6 overflow-y-auto max-w-7xl mx-auto w-full">
-              {children}
-            </main>
-          </div>
+          <Header />
+          <main id="main">{children}</main>
+          <Footer />
         </Providers>
       </body>
     </html>

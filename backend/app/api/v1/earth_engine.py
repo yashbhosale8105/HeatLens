@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, HTTPException, Response
+from fastapi import APIRouter, Query, Response
 from typing import Dict, Any, List
 from app.services.earth_engine_service import EarthEngineService
 

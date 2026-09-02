@@ -1,46 +1,54 @@
-'use client';
-
-import React from 'react';
-import { SectionTitle } from '@/components/ui/SectionTitle';
-import { Card } from '@/components/ui/Card';
+import { PageHeader } from '@/components/PageHeader';
 
 export default function AboutPage() {
   return (
-    <div className="space-y-6 max-w-4xl">
-      <SectionTitle
-        title="About HeatLens 🌡️📡"
-        subtitle="Satellite-Powered Land Surface Temperature & Heat Risk Analytics Platform"
-        icon="ℹ️"
-      />
+    <div className="page max-w-3xl space-y-6">
+      <PageHeader kicker="Guide" title="How HeatLens works">
+        A simple place to see air heat, ground heat, and which parts of Thane run warmer.
+      </PageHeader>
 
-      <Card className="space-y-4">
-        <h3 className="text-lg font-bold text-slate-100">Overview</h3>
-        <p className="text-sm text-slate-300 leading-relaxed">
-          <strong>HeatLens</strong> is a real-time satellite monitoring and micro-grid urban heat analytics engine specifically tailored for Thane City, Maharashtra, India. It combines satellite radiometry from Google Earth Engine (Landsat 8 Collection 2 Level 2) with real-time atmospheric measurements from Open-Meteo API.
+      <section className="panel space-y-3 px-6 py-6">
+        <h2 className="text-[1.65rem]">What you can do</h2>
+        <ul className="list-disc space-y-2 pl-5 leading-relaxed">
+          <li>Read today’s air temperature, humidity, and how it feels on every page.</li>
+          <li>Open the map, type a neighbourhood, and click a point for a ground reading.</li>
+          <li>Search or sort the table, then download CSV or GeoJSON.</li>
+        </ul>
+      </section>
+
+      <section className="panel space-y-3 px-6 py-6">
+        <h2 className="text-[1.65rem]">Where the numbers come from</h2>
+        <p className="leading-relaxed">
+          Air temperature and humidity come from Open-Meteo. The heat index follows the NOAA method:
+          it is how hot the air feels, not the temperature of the ground.
         </p>
+        <p className="leading-relaxed">
+          Ground readings are estimated on a regular grid over Thane. Greener cells (higher NDVI)
+          usually stay cooler than roads and industrial land.
+        </p>
+      </section>
 
-        <div className="border-t border-slate-800 pt-4 space-y-3">
-          <h4 className="text-sm font-bold text-amber-400">Radiometric Formula & Scaling</h4>
-          <code className="block p-3 rounded-lg bg-slate-950 font-mono text-xs text-rose-300 border border-slate-800">
-            LST (°C) = (0.00341802 * ST_B10 + 149.0) - 273.15
-          </code>
-          <p className="text-xs text-slate-400 leading-relaxed">
-            The platform applies QA_PIXEL and QA_RADSAT bitmasking to eliminate cloud cover, cirrus noise, water bodies, and band saturation before computing surface temperatures.
-          </p>
-        </div>
+      <section className="panel space-y-4 px-6 py-6">
+        <h2 className="text-[1.65rem]">Heat index bands</h2>
+        <dl className="space-y-3">
+          <Band name="Normal" tone="badge-ok" text="Comfortable for most people outdoors." />
+          <Band name="Caution" tone="badge-warm" text="Fatigue possible with long activity." />
+          <Band name="Extreme Caution" tone="badge-warm" text="Heat cramps or exhaustion more likely." />
+          <Band name="Danger" tone="badge-hot" text="Heat exhaustion likely. Limit outdoor work." />
+          <Band name="Extreme Danger" tone="badge-hot" text="Heat stroke risk. Stay indoors if you can." />
+        </dl>
+      </section>
+    </div>
+  );
+}
 
-        <div className="border-t border-slate-800 pt-4 space-y-3">
-          <h4 className="text-sm font-bold text-rose-400">NOAA Heat Index ($HI$) & Risk Classification</h4>
-          <p className="text-xs text-slate-400 leading-relaxed">
-            Combines ambient temperature ($T$) and relative humidity ($RH$) to assess human-perceived heat stress across 5 risk categories:
-            <span className="text-emerald-400 font-semibold ml-1">Normal</span>,
-            <span className="text-amber-300 font-semibold ml-1">Caution</span>,
-            <span className="text-orange-400 font-semibold ml-1">Extreme Caution</span>,
-            <span className="text-red-400 font-semibold ml-1">Danger</span>, and
-            <span className="text-rose-500 font-semibold ml-1">Extreme Danger</span>.
-          </p>
-        </div>
-      </Card>
+function Band({ name, tone, text }: { name: string; tone: string; text: string }) {
+  return (
+    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
+      <dt className="sm:w-44">
+        <span className={`badge ${tone}`}>{name}</span>
+      </dt>
+      <dd className="text-[var(--muted)]">{text}</dd>
     </div>
   );
 }

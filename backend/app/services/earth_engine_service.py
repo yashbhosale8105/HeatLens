@@ -2,13 +2,62 @@ import math
 import logging
 from typing import Dict, Any, List
 from datetime import datetime, timedelta
-from functools import lru_cache
 
 logger = logging.getLogger(__name__)
 
 # Coordinates bounding box for Thane City
 THANE_CENTER_LAT = 19.2183
 THANE_CENTER_LON = 72.9781
+
+THANE_AREAS = [
+    ("Thane Central", 19.2183, 72.9781),
+    ("Thane Station", 19.1863, 72.9756),
+    ("Naupada", 19.1978, 72.9726),
+    ("Panch Pakhadi", 19.2048, 72.9668),
+    ("Teen Hath Naka", 19.2065, 72.9739),
+    ("Court Naka", 19.1942, 72.9748),
+    ("Jambli Naka", 19.1948, 72.9704),
+    ("Talao Pali", 19.1936, 72.9678),
+    ("Kopri", 19.1865, 72.9782),
+    ("Kalwa", 19.1948, 72.9986),
+    ("Mumbra", 19.1762, 73.0264),
+    ("Diva", 19.1881, 73.0427),
+    ("Wagle Estate", 19.185, 72.952),
+    ("Lokmanya Nagar", 19.1914, 72.9588),
+    ("Vartak Nagar", 19.2096, 72.9612),
+    ("Majiwada", 19.2268, 72.9844),
+    ("Balkum", 19.2326, 72.9915),
+    ("Kolshet", 19.2388, 72.9802),
+    ("Manpada", 19.2334, 72.9721),
+    ("Kapurbawdi", 19.2241, 72.9736),
+    ("Cadbury Junction", 19.2289, 72.9698),
+    ("Ghodbunder Road", 19.245, 72.971),
+    ("Kasarvadavali", 19.2672, 72.9674),
+    ("Owale", 19.2586, 72.9728),
+    ("Brahmand", 19.2518, 72.9645),
+    ("Hiranandani Estate", 19.2614, 72.9796),
+    ("Hiranandani Meadows", 19.2562, 72.9744),
+    ("Anand Nagar", 19.2542, 72.9818),
+    ("Kavesar", 19.2466, 72.9764),
+    ("Waghbil", 19.2724, 72.9726),
+    ("Yeoor Hills", 19.24, 72.94),
+    ("Yeoor", 19.2436, 72.9368),
+    ("Upvan Lake", 19.2318, 72.9514),
+    ("Louis Wadi", 19.2112, 72.9695),
+    ("Thane Creek", 19.2054, 72.9981),
+    ("Kharegaon", 19.2148, 73.0126),
+]
+
+
+def nearest_area_name(lat: float, lon: float) -> str:
+    best_name = "Thane Central"
+    best_dist = float("inf")
+    for name, alat, alon in THANE_AREAS:
+        dist = (lat - alat) ** 2 + (lon - alon) ** 2
+        if dist < best_dist:
+            best_dist = dist
+            best_name = name
+    return best_name
 
 # Cache dictionary for point queries
 _LST_POINT_CACHE: Dict[str, Dict[str, Any]] = {}
@@ -87,14 +136,7 @@ class EarthEngineService:
                 lon = lon_min + (j + 0.5) * lon_step
                 
                 point_data = EarthEngineService.compute_lst_point(lat, lon)
-                
-                neighborhood = "Thane Central"
-                if lat > 19.24:
-                    neighborhood = "Ghodbunder Road" if lon < 72.98 else "Balkum / Majiwada"
-                elif lat < 19.19:
-                    neighborhood = "Mulund Border / Wagle Estate" if lon < 72.96 else "Kopri / Kalwa"
-                elif lon > 72.99:
-                    neighborhood = "Thane Creek Micro-basin"
+                neighborhood = nearest_area_name(lat, lon)
                     
                 grid.append({
                     "id": f"GRID-{id_counter:03d}",

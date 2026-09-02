@@ -1,0 +1,10 @@
+.git
+.next
+node_modules
+backend/python
+backend/venv
+backend/.venv
+backend/get-pip.py
+**/__pycache__
+**/.pytest_cache
+**/.env

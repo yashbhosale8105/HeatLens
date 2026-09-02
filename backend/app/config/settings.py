@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "HeatLens 🌡️📡"
+    PROJECT_NAME: str = "HeatLens"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     

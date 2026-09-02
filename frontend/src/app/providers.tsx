@@ -1,50 +1,59 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { WeatherData } from '@/lib/types';
-import { fetchCurrentWeather } from '@/lib/api';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { GridRankItem, WeatherData } from '@/lib/types';
+import { fetchCurrentWeather, fetchGridRanks } from '@/lib/api';
 
 interface AppContextType {
   weather: WeatherData | null;
+  grid: GridRankItem[];
   loading: boolean;
-  refreshWeather: () => Promise<void>;
-  selectedCoords: { lat: number; lon: number } | null;
-  setSelectedCoords: (coords: { lat: number; lon: number } | null) => void;
+  error: string | null;
+  lastUpdated: Date | null;
+  refresh: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType>({
   weather: null,
+  grid: [],
   loading: true,
-  refreshWeather: async () => {},
-  selectedCoords: null,
-  setSelectedCoords: () => {}
+  error: null,
+  lastUpdated: null,
+  refresh: async () => {},
 });
 
 export const useApp = () => useContext(AppContext);
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [grid, setGrid] = useState<GridRankItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lon: number } | null>({
-    lat: 19.2183,
-    lon: 72.9781
-  });
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const refreshWeather = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
-    const data = await fetchCurrentWeather();
-    setWeather(data);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    refreshWeather();
-    const interval = setInterval(refreshWeather, 3 * 60 * 60 * 1000); // 3-hour auto refresh
-    return () => clearInterval(interval);
+    setError(null);
+    try {
+      const [weatherData, gridData] = await Promise.all([fetchCurrentWeather(), fetchGridRanks(25)]);
+      setWeather(weatherData);
+      setGrid(gridData);
+      setLastUpdated(new Date());
+    } catch {
+      setError('Could not reach the HeatLens server. Start the backend on port 8000 and refresh.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
+  useEffect(() => {
+    refresh();
+    const timer = setInterval(refresh, 3 * 60 * 60 * 1000);
+    return () => clearInterval(timer);
+  }, [refresh]);
+
   return (
-    <AppContext.Provider value={{ weather, loading, refreshWeather, selectedCoords, setSelectedCoords }}>
+    <AppContext.Provider value={{ weather, grid, loading, error, lastUpdated, refresh }}>
       {children}
     </AppContext.Provider>
   );

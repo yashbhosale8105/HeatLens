@@ -1,0 +1,7 @@
+python
+venv
+.venv
+get-pip.py
+__pycache__
+.pytest_cache
+.pytest_cache
