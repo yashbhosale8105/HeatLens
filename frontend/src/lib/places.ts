@@ -2,6 +2,32 @@ import { Neighborhood } from './types';
 
 export const THANE_CENTER = { lat: 19.2183, lon: 72.9781 };
 
+export const THANE_BOUNDS = {
+  southWest: { lat: 19.155, lon: 72.925 },
+  northEast: { lat: 19.29, lon: 73.045 },
+};
+
+export const THANE_MAP_BOUNDS: [[number, number], [number, number]] = [
+  [THANE_BOUNDS.southWest.lat, THANE_BOUNDS.southWest.lon],
+  [THANE_BOUNDS.northEast.lat, THANE_BOUNDS.northEast.lon],
+];
+
+export function isInsideThane(lat: number, lon: number): boolean {
+  return (
+    lat >= THANE_BOUNDS.southWest.lat &&
+    lat <= THANE_BOUNDS.northEast.lat &&
+    lon >= THANE_BOUNDS.southWest.lon &&
+    lon <= THANE_BOUNDS.northEast.lon
+  );
+}
+
+export function clampToThane(lat: number, lon: number): { lat: number; lon: number } {
+  return {
+    lat: Math.min(THANE_BOUNDS.northEast.lat, Math.max(THANE_BOUNDS.southWest.lat, lat)),
+    lon: Math.min(THANE_BOUNDS.northEast.lon, Math.max(THANE_BOUNDS.southWest.lon, lon)),
+  };
+}
+
 export const QUICK_AREAS = [
   'Majiwada',
   'Ghodbunder Road',

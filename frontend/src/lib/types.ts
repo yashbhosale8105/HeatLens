@@ -17,18 +17,24 @@ export interface WeatherData {
   location_name: string;
 }
 
+export type DataSource = 'landsat' | 'model';
+
 export interface PointTempData {
   latitude: number;
   longitude: number;
   lst_celsius: number;
   lst_fahrenheit: number;
-  ndvi_index: number;
-  vegetation_density: 'Dense Forest' | 'Moderate Greenery' | 'Low Vegetation' | 'Built-up Concrete';
-  satellite: string;
-  band: string;
-  acquisition_date: string;
-  cloud_cover: number;
-  qa_pixel_mask: string;
+  ndvi_index: number | null;
+  vegetation_density: string;
+  data_source: DataSource;
+  satellite: string | null;
+  band: string | null;
+  acquisition_date: string | null;
+  cloud_cover: number | null;
+  scene_id: string | null;
+  sample_radius_m: number | null;
+  quality: string;
+  note: string | null;
 }
 
 export interface GridRankItem {
@@ -37,15 +43,50 @@ export interface GridRankItem {
   latitude: number;
   longitude: number;
   lst_celsius: number;
-  ndvi_index: number;
+  ndvi_index: number | null;
+  data_source: DataSource;
   heat_rank: number;
 }
 
-export interface HistoricalTrend {
+export interface SceneInfo {
+  scene_id: string;
+  platform: string;
+  acquired: string;
+  cloud_cover: number;
+  usable_fraction: number;
+  fetched_at: string;
+  latest_pass: string | null;
+  latest_pass_clear: number | null;
+  collection: string;
+  bands: string;
+  resolution_m: number;
+  provider: string;
+}
+
+export interface SourceStatus {
+  source: DataSource;
+  status: string;
+  detail: string;
+  scene: SceneInfo | null;
+  city_stats: { min_celsius: number; mean_celsius: number; max_celsius: number } | null;
+  model_note: string | null;
+  checked_at: string;
+}
+
+export interface HistoricalRow {
   year: string;
-  summer_max: number;
-  monsoon_avg: number;
-  winter_avg: number;
+  scene_date: string;
+  mean_celsius: number;
+  max_celsius: number;
+  min_celsius: number;
+  cloud_cover: number;
+}
+
+export interface HistoricalTrend {
+  available: boolean;
+  source: string;
+  note: string;
+  rows: HistoricalRow[];
 }
 
 export interface Neighborhood {

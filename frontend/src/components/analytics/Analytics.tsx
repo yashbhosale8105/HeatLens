@@ -6,7 +6,8 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Scatter, ScatterCh
 import { fetchHistoricalTrends, getExportUrl } from '@/lib/api';
 import { HistoricalTrend } from '@/lib/types';
 import { useApp } from '@/app/providers';
-import { formatTemp, heatBand, mean } from '@/lib/utils';
+import { formatTemp, heatBand, HEAT_BANDS, mean } from '@/lib/utils';
+import { SourceNote } from '../SourceNote';
 import { Spinner } from '../ui/Spinner';
 
 type SortKey = 'heat_rank' | 'neighborhood' | 'lst_celsius' | 'ndvi_index';
@@ -14,14 +15,32 @@ type BandFilter = 'all' | 'hot' | 'warm' | 'cool';
 
 export function Analytics() {
   const { grid, loading, error } = useApp();
-  const [historical, setHistorical] = useState<HistoricalTrend[]>([]);
+  const [historical, setHistorical] = useState<HistoricalTrend | null>(null);
   const [search, setSearch] = useState('');
   const [band, setBand] = useState<BandFilter>('all');
   const [sortKey, setSortKey] = useState<SortKey>('heat_rank');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
-    fetchHistoricalTrends().then(setHistorical).catch(() => setHistorical([]));
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const load = () => {
+      fetchHistoricalTrends()
+        .then((data) => {
+          if (cancelled) return;
+          setHistorical(data);
+          // The yearly series is built from several scenes in the background.
+          if (!data.available) timer = setTimeout(load, 8000);
+        })
+        .catch(() => {
+          if (!cancelled) setHistorical(null);
+        });
+    };
+    load();
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, []);
 
   const temps = grid.map((item) => item.lst_celsius);
@@ -39,7 +58,10 @@ export function Analytics() {
     return [...filtered].sort((a, b) => {
       const left = a[sortKey];
       const right = b[sortKey];
-      const cmp = typeof left === 'string' ? left.localeCompare(String(right)) : Number(left) - Number(right);
+      const cmp =
+        typeof left === 'string'
+          ? left.localeCompare(String(right))
+          : (left ?? Number.NEGATIVE_INFINITY) - (Number(right) ?? Number.NEGATIVE_INFINITY);
       return sortDir === 'asc' ? cmp : -cmp;
     });
   }, [grid, search, band, sortKey, sortDir]);
@@ -53,11 +75,13 @@ export function Analytics() {
     setSortDir(key === 'neighborhood' ? 'asc' : 'desc');
   }
 
-  const scatterData = grid.map((item) => ({
-    x: item.ndvi_index,
-    y: item.lst_celsius,
-    name: item.neighborhood,
-  }));
+  const scatterData = grid
+    .filter((item) => item.ndvi_index !== null)
+    .map((item) => ({
+      x: item.ndvi_index as number,
+      y: item.lst_celsius,
+      name: item.neighborhood,
+    }));
 
   return (
     <div className="space-y-6">
@@ -66,6 +90,8 @@ export function Analytics() {
           {error}
         </div>
       )}
+
+      <SourceNote />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-[var(--muted)]">{grid.length} sample points. Download the current grid if you need it offline.</p>
@@ -87,20 +113,34 @@ export function Analytics() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="panel p-5">
-          <h2 className="text-[1.45rem]">Seasonal trend</h2>
-          <p className="mb-3 text-[0.98rem] text-[var(--muted)]">Summer peak, monsoon mean, winter mean</p>
+          <h2 className="text-[1.45rem]">Year by year</h2>
+          <p className="mb-3 text-[0.98rem] text-[var(--muted)]">
+            {historical?.available
+              ? historical.note
+              : historical?.note || 'Loading the yearly Landsat series'}
+          </p>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={historical}>
-                <CartesianGrid stroke="#efd2bc" strokeDasharray="3 3" />
-                <XAxis dataKey="year" stroke="#6e4b3a" fontSize={12} />
-                <YAxis stroke="#6e4b3a" fontSize={12} domain={[20, 50]} />
-                <Tooltip contentStyle={{ border: '1px solid #efd2bc', background: '#fffaf5', borderRadius: 10, fontSize: 13 }} />
-                <Line type="monotone" dataKey="summer_max" name="Summer peak" stroke="#c2410c" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="monsoon_avg" name="Monsoon" stroke="#0b6e6a" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="winter_avg" name="Winter" stroke="#c05621" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
+            {historical?.available ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={historical.rows}>
+                  <CartesianGrid stroke="#efd2bc" strokeDasharray="3 3" />
+                  <XAxis dataKey="year" stroke="#6e4b3a" fontSize={12} />
+                  <YAxis stroke="#6e4b3a" fontSize={12} domain={['dataMin - 3', 'dataMax + 3']} />
+                  <Tooltip
+                    contentStyle={{ border: '1px solid #efd2bc', background: '#fffaf5', borderRadius: 10, fontSize: 13 }}
+                    labelFormatter={(label, payload) => {
+                      const date = payload?.[0]?.payload?.scene_date;
+                      return date ? `${label} · scene of ${date}` : String(label);
+                    }}
+                  />
+                  <Line type="monotone" dataKey="max_celsius" name="Hottest surfaces" stroke="#c2410c" strokeWidth={2} dot />
+                  <Line type="monotone" dataKey="mean_celsius" name="City mean" stroke="#c05621" strokeWidth={2} dot />
+                  <Line type="monotone" dataKey="min_celsius" name="Coolest surfaces" stroke="#0b6e6a" strokeWidth={2} dot />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <Spinner label="Building the yearly series from Landsat scenes" />
+            )}
           </div>
         </div>
 
@@ -111,8 +151,8 @@ export function Analytics() {
             <ResponsiveContainer width="100%" height="100%">
               <ScatterChart>
                 <CartesianGrid stroke="#efd2bc" strokeDasharray="3 3" />
-                <XAxis dataKey="x" name="NDVI" stroke="#6e4b3a" fontSize={12} />
-                <YAxis dataKey="y" name="LST" stroke="#6e4b3a" fontSize={12} domain={[25, 50]} />
+                <XAxis dataKey="x" name="NDVI" stroke="#6e4b3a" fontSize={12} domain={['dataMin - 0.05', 'dataMax + 0.05']} />
+                <YAxis dataKey="y" name="LST" stroke="#6e4b3a" fontSize={12} domain={['dataMin - 2', 'dataMax + 2']} />
                 <Tooltip contentStyle={{ border: '1px solid #efd2bc', background: '#fffaf5', borderRadius: 10, fontSize: 13 }} />
                 <Scatter data={scatterData} fill="#ea580c" />
               </ScatterChart>
@@ -138,9 +178,9 @@ export function Analytics() {
               Temperature band
               <select className="field mt-1" value={band} onChange={(e) => setBand(e.target.value as BandFilter)}>
                 <option value="all">All temperatures</option>
-                <option value="hot">Hot (42°C+)</option>
-                <option value="warm">Warm (36–42°C)</option>
-                <option value="cool">Cooler (under 36°C)</option>
+                <option value="hot">Hot ({HEAT_BANDS.hot}°C+)</option>
+                <option value="warm">Warm ({HEAT_BANDS.warm}–{HEAT_BANDS.hot}°C)</option>
+                <option value="cool">Cooler (under {HEAT_BANDS.warm}°C)</option>
               </select>
             </label>
           </div>
@@ -169,7 +209,9 @@ export function Analytics() {
                     <td className="px-4 py-4 tabular-nums">{item.heat_rank}</td>
                     <td className="px-4 py-4 text-[var(--muted)]">{item.id}</td>
                     <td className="px-4 py-4 font-medium">{item.neighborhood}</td>
-                    <td className="px-4 py-4 tabular-nums">{item.ndvi_index}</td>
+                    <td className="px-4 py-4 tabular-nums">
+                      {item.ndvi_index === null ? '—' : item.ndvi_index.toFixed(2)}
+                    </td>
                     <td className="px-4 py-4 tabular-nums text-[var(--muted)]">
                       {item.latitude}, {item.longitude}
                     </td>

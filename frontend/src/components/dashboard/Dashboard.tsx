@@ -10,6 +10,7 @@ import { GridRankItem, Neighborhood } from '@/lib/types';
 import { formatCoord, formatTemp, heatBand, mean, riskClass } from '@/lib/utils';
 import { PageHeader } from '../PageHeader';
 import { PlaceSearch } from '../PlaceSearch';
+import { SourceNote } from '../SourceNote';
 import { Spinner } from '../ui/Spinner';
 
 export function Dashboard() {
@@ -56,6 +57,7 @@ export function Dashboard() {
           longitude: resolved.lon,
           lst_celsius: point.lst_celsius,
           ndvi_index: point.ndvi_index,
+          data_source: point.data_source,
           heat_rank: hotter + 1,
         });
       })
@@ -82,6 +84,8 @@ export function Dashboard() {
         </div>
       )}
 
+      <SourceNote />
+
       <div className="panel px-5 py-5">
         <p className="kicker">{plan.title}</p>
         <ul className="mt-3 space-y-1.5 leading-relaxed">
@@ -99,7 +103,7 @@ export function Dashboard() {
           value={weather ? formatTemp(weather.heat_index_celsius) : '—'}
           note={weather ? <span className={`badge ${riskClass(weather.risk_category)}`}>{weather.risk_category}</span> : null}
         />
-        <Stat label="Mean ground heat" value={grid.length ? formatTemp(stats.mean) : '—'} note="Average of 25 sample points" />
+        <Stat label="Mean ground heat" value={grid.length ? formatTemp(stats.mean) : '—'} note={`Average of ${grid.length || 0} sample points`} />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -184,7 +188,9 @@ export function Dashboard() {
                           {formatTemp(item.lst_celsius)} · {bandLabel}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-[var(--muted)]">NDVI {item.ndvi_index}</td>
+                      <td className="px-5 py-4 text-[var(--muted)]">
+                        {item.ndvi_index === null ? 'Not available' : `NDVI ${item.ndvi_index.toFixed(2)}`}
+                      </td>
                       <td className="px-5 py-4 text-right">
                         <Link href={`/map?lat=${item.latitude}&lon=${item.longitude}`} className="btn-ghost btn !min-h-10 !px-3 !text-sm">
                           Open map

@@ -395,7 +395,14 @@ input {
   height: 10px;
   width: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #0ea5a4, #65a30d, #f59e0b, #ea580c, #be123c);
+  background: linear-gradient(
+    90deg,
+    #0ea5a4 0%,
+    #65a30d 28%,
+    #d69e2e 52%,
+    #ea580c 76%,
+    #9b2c2c 100%
+  );
 }
 
 .leaflet-container {

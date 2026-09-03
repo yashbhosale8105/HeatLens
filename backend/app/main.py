@@ -5,7 +5,7 @@ import logging
 
 from app.config.settings import settings
 from app.api.v1.router import api_router
-from app.core.gee_config import initialize_earth_engine
+from app.services import landsat_service
 
 logger = logging.getLogger(__name__)
 
@@ -13,9 +13,10 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     # Startup logic
     logger.info("Starting up FastAPI application...")
-    logger.info("Initializing Google Earth Engine...")
-    initialize_earth_engine()
-    
+    logger.info("Warming the Landsat surface temperature snapshot for Thane...")
+    landsat_service.prefetch()
+    landsat_service.prefetch_history()
+
     yield
     
     # Shutdown logic

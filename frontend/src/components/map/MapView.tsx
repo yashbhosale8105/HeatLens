@@ -9,6 +9,7 @@ import { Neighborhood, PointTempData } from '@/lib/types';
 import { formatCoord, formatTemp } from '@/lib/utils';
 import { ComparePlaces } from '../ComparePlaces';
 import { PlaceSearch } from '../PlaceSearch';
+import { SourceNote } from '../SourceNote';
 import { Spinner } from '../ui/Spinner';
 
 const HeatMap = dynamic(() => import('./HeatMap'), {
@@ -39,6 +40,11 @@ export function MapView({ initialLat, initialLon }: MapViewProps) {
       ),
     [grid]
   );
+  const scale = useMemo(() => {
+    const temps = grid.map((item) => item.lst_celsius);
+    if (temps.length === 0) return { min: 20, max: 50 };
+    return { min: Math.min(...temps), max: Math.max(...temps) };
+  }, [grid]);
 
   useEffect(() => {
     if (initialLat == null || initialLon == null) return;
@@ -103,8 +109,9 @@ export function MapView({ initialLat, initialLon }: MapViewProps) {
         </div>
       </div>
 
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
       <div className="panel map-stage overflow-hidden">
-        <div className="h-[560px] w-full" role="region" aria-label="Thane heat map">
+        <div className="h-[480px] w-full sm:h-[600px] lg:h-[680px]" role="region" aria-label="Thane heat map">
           <HeatMap
             gridPoints={grid}
             showRaster={showRaster}
@@ -115,17 +122,20 @@ export function MapView({ initialLat, initialLon }: MapViewProps) {
             onPointSelect={handleSelect}
           />
         </div>
-        <div className="flex flex-col gap-3 border-t border-[var(--line)] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="w-full max-w-md">
-            <p className="mb-1 text-xs text-[var(--muted)]">Ground temperature scale</p>
+        <div className="space-y-3 border-t border-[var(--line)] px-5 py-4">
+          <div className="w-full">
+            <p className="mb-1 text-xs text-[var(--muted)]">Ground temperature across Thane today</p>
             <div className="temp-bar" />
-            <div className="mt-1 flex justify-between text-xs text-[var(--muted)]">
-              <span>20°C cooler</span>
-              <span>35°C</span>
-              <span>50°C hotter</span>
+            <div className="mt-1 flex justify-between text-xs tabular-nums text-[var(--muted)]">
+              <span>{formatTemp(scale.min)} coolest</span>
+              <span>{formatTemp((scale.min + scale.max) / 2)}</span>
+              <span>{formatTemp(scale.max)} hottest</span>
             </div>
           </div>
-          <p className="text-sm text-[var(--muted)]">Click anywhere on the map to read that spot.</p>
+          <p className="text-sm text-[var(--muted)]">
+            Only Thane is shown. Click anywhere inside the city outline to read that spot.
+          </p>
+          <SourceNote />
         </div>
       </div>
 
@@ -136,7 +146,7 @@ export function MapView({ initialLat, initialLon }: MapViewProps) {
         )}
         {selected && (
           <div className="space-y-4">
-          <div className="grid gap-5 sm:grid-cols-4">
+          <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <p className="text-sm text-[var(--muted)]">Ground temperature</p>
               <p className="metric mt-1 tabular-nums">{formatTemp(selected.lst_celsius)}</p>
@@ -147,23 +157,36 @@ export function MapView({ initialLat, initialLon }: MapViewProps) {
               <p className="mt-1">
                 {formatCoord(selected.latitude)}, {formatCoord(selected.longitude)}
               </p>
-              <p className="text-sm text-[var(--muted)]">{selected.vegetation_density}</p>
             </div>
             <div>
               <p className="text-sm text-[var(--muted)]">Greenery</p>
-              <p className="mt-1 tabular-nums">NDVI {selected.ndvi_index}</p>
+              <p className="mt-1 tabular-nums">
+                {selected.ndvi_index === null ? 'Not available' : `NDVI ${selected.ndvi_index.toFixed(2)}`}
+              </p>
+              <p className="text-sm text-[var(--muted)]">{selected.vegetation_density}</p>
             </div>
             <div>
-              <p className="text-sm text-[var(--muted)]">Reading date</p>
-              <p className="mt-1">{selected.acquisition_date}</p>
-              <p className="text-sm text-[var(--muted)]">{selected.satellite}</p>
+              <p className="text-sm text-[var(--muted)]">Measured on</p>
+              <p className="mt-1">{selected.acquisition_date ?? 'Not measured'}</p>
+              <p className="text-sm text-[var(--muted)]">{selected.satellite ?? selected.quality}</p>
             </div>
           </div>
+          {selected.note && <p className="text-sm text-[var(--heat)]">{selected.note}</p>}
+          {selected.data_source === 'landsat' && (
+            <p className="text-sm text-[var(--muted)]">
+              {selected.quality}
+              {selected.scene_id ? ` · scene ${selected.scene_id}` : ''}
+            </p>
+          )}
           <button
             type="button"
             className="btn-ghost btn !min-h-10 !text-sm"
             onClick={async () => {
-              const text = `HeatLens · ${formatTemp(selected.lst_celsius)} ground · ${formatCoord(selected.latitude)}, ${formatCoord(selected.longitude)}`;
+              const provenance =
+                selected.data_source === 'landsat'
+                  ? `${selected.satellite} on ${selected.acquisition_date}`
+                  : 'modelled estimate, not measured';
+              const text = `HeatLens · ${formatTemp(selected.lst_celsius)} ground · ${formatCoord(selected.latitude)}, ${formatCoord(selected.longitude)} · ${provenance}`;
               try {
                 await navigator.clipboard.writeText(text);
                 setCopied(true);
@@ -177,6 +200,7 @@ export function MapView({ initialLat, initialLon }: MapViewProps) {
           </button>
           </div>
         )}
+      </div>
       </div>
 
       <ComparePlaces places={places} />

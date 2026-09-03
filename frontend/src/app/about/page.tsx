@@ -19,12 +19,26 @@ export default function AboutPage() {
       <section className="panel space-y-3 px-6 py-6">
         <h2 className="text-[1.65rem]">Where the numbers come from</h2>
         <p className="leading-relaxed">
-          Air temperature and humidity come from Open-Meteo. The heat index follows the NOAA method:
-          it is how hot the air feels, not the temperature of the ground.
+          Air temperature, humidity, wind and UV are live readings from Open-Meteo. The heat index
+          follows the NOAA method: it is how hot the air feels, not the temperature of the ground.
         </p>
         <p className="leading-relaxed">
-          Ground readings are estimated on a regular grid over Thane. Greener cells (higher NDVI)
-          usually stay cooler than roads and industrial land.
+          Ground temperature is measured, not estimated. HeatLens reads the most recent usable
+          Landsat 8 or 9 scene over Thane from the USGS Collection 2 Level-2 archive, using the
+          ST_B10 thermal band at 30 m per pixel, and computes greenery (NDVI) from the red and
+          near-infrared bands of the same scene. Cloudy pixels are masked out with the scene quality
+          band, and the app names the satellite, the date and the cloud cover behind every reading.
+        </p>
+        <p className="leading-relaxed">
+          Two things follow from using real satellite data. Ground temperature is the temperature of
+          the surface itself, so on a clear afternoon tarmac can read 20°C above the air temperature.
+          And scenes only pass over every eight days or so, and Thane’s monsoon months are heavily
+          clouded, so the newest usable scene may be several weeks old. The date shown is always the
+          date the measurement was taken.
+        </p>
+        <p className="leading-relaxed">
+          If no usable scene can be reached, HeatLens says so on the page and labels the numbers as
+          modelled estimates rather than passing them off as measurements.
         </p>
       </section>
 

@@ -14,13 +14,9 @@ class Settings(BaseSettings):
         "http://127.0.0.1:8000"
     ]
     
-    # Google Earth Engine Configuration
-    GEE_PROJECT_ID: str = "ee-heatlens"
-    GEE_SERVICE_ACCOUNT: str = ""
-    GEE_KEY_FILE: str = ""
-
-    # Default Bounding Box for Thane City, Maharashtra, India
-    THANE_BBOX: List[float] = [72.93, 19.15, 73.05, 19.32] # min_lon, min_lat, max_lon, max_lat
+    # Thane City window shared by the map, the grid and the Landsat reads.
+    # min_lon, min_lat, max_lon, max_lat
+    THANE_BBOX: List[float] = [72.925, 19.155, 73.045, 19.29]
     
     model_config = SettingsConfigDict(case_sensitive=True, extra="allow")
 

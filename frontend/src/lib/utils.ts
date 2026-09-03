@@ -14,9 +14,13 @@ export function formatCoord(value: number): string {
   return value.toFixed(4);
 }
 
+// Bands for ground surface temperature, which on a clear pre-monsoon day in
+// Thane runs far hotter than the air temperature.
+export const HEAT_BANDS = { hot: 50, warm: 42 };
+
 export function heatBand(temp: number): 'hot' | 'warm' | 'cool' {
-  if (temp >= 42) return 'hot';
-  if (temp >= 36) return 'warm';
+  if (temp >= HEAT_BANDS.hot) return 'hot';
+  if (temp >= HEAT_BANDS.warm) return 'warm';
   return 'cool';
 }
 

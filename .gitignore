@@ -26,6 +26,9 @@ venv.bak/
 backend/python/
 backend/get-pip.py
 
+# Cached Landsat scene window for Thane
+backend/.cache/
+
 # Environment / Local Secrets
 .env
 .env*.local

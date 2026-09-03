@@ -1,4 +1,4 @@
-import { WeatherData, PointTempData, GridRankItem, HistoricalTrend } from './types';
+import { WeatherData, PointTempData, GridRankItem, HistoricalTrend, SourceStatus } from './types';
 import { THANE_CENTER } from './places';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -13,23 +13,29 @@ export async function fetchCurrentWeather(
 }
 
 export async function fetchPointTemp(lat: number, lon: number): Promise<PointTempData> {
-  const res = await fetch(`${API_BASE_URL}/api/v1/earth-engine/query-point?lat=${lat}&lon=${lon}`);
+  const res = await fetch(`${API_BASE_URL}/api/v1/thermal/point?lat=${lat}&lon=${lon}`);
   if (!res.ok) throw new Error('Could not load surface temperature');
   return res.json();
 }
 
-export async function fetchGridRanks(count = 25): Promise<GridRankItem[]> {
-  const res = await fetch(`${API_BASE_URL}/api/v1/earth-engine/grid-ranks?count=${count}`);
-  if (!res.ok) throw new Error('Could not load grid ranks');
+export async function fetchGridRanks(count = 49): Promise<GridRankItem[]> {
+  const res = await fetch(`${API_BASE_URL}/api/v1/thermal/grid?count=${count}`);
+  if (!res.ok) throw new Error('Could not load grid readings');
   return res.json();
 }
 
-export async function fetchHistoricalTrends(): Promise<HistoricalTrend[]> {
-  const res = await fetch(`${API_BASE_URL}/api/v1/earth-engine/historical`);
+export async function fetchSourceStatus(): Promise<SourceStatus> {
+  const res = await fetch(`${API_BASE_URL}/api/v1/thermal/source`);
+  if (!res.ok) throw new Error('Could not load data source status');
+  return res.json();
+}
+
+export async function fetchHistoricalTrends(): Promise<HistoricalTrend> {
+  const res = await fetch(`${API_BASE_URL}/api/v1/thermal/historical`);
   if (!res.ok) throw new Error('Could not load trends');
   return res.json();
 }
 
-export function getExportUrl(format: 'geojson' | 'csv', count = 25): string {
-  return `${API_BASE_URL}/api/v1/earth-engine/export?format=${format}&count=${count}`;
+export function getExportUrl(format: 'geojson' | 'csv', count = 49): string {
+  return `${API_BASE_URL}/api/v1/thermal/export?format=${format}&count=${count}`;
 }
