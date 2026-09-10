@@ -28,11 +28,14 @@ export function Header() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeMenu(menuId);
+      if (event.key !== 'Escape') return;
+      document.querySelectorAll<HTMLInputElement>('.nav-toggle-input:checked').forEach((box) => {
+        box.checked = false;
+      });
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [menuId]);
+    document.addEventListener('keydown', onKey, true);
+    return () => document.removeEventListener('keydown', onKey, true);
+  }, []);
 
   return (
     <>
