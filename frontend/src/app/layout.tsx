@@ -4,6 +4,7 @@ import { Fraunces, Source_Sans_3 } from 'next/font/google';
 import { Providers } from './providers';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { ScrollReset } from '@/components/ScrollReset';
 
 const display = Fraunces({
   subsets: ['latin'],
@@ -33,11 +34,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin=""
         />
       </head>
-      <body>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;document.querySelectorAll('.nav-toggle-input:checked').forEach(function(el){el.checked=false;});},true);",
+          }}
+        />
         <a className="skip-link" href="#main">
           Skip to main content
         </a>
         <Providers>
+          <ScrollReset />
           <Header />
           <main id="main">{children}</main>
           <Footer />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   CircleMarker,
   ImageOverlay,
@@ -32,6 +32,7 @@ interface HeatMapProps {
   showGrid: boolean;
   opacity: number;
   focus: { lat: number; lon: number } | null;
+  preserveView?: boolean;
   selected: PointTempData | null;
   onPointSelect: (data: PointTempData) => void;
 }
@@ -50,21 +51,28 @@ function ClickHandler({ onPointSelect }: { onPointSelect: (data: PointTempData) 
 
 function FlyTo({ focus }: { focus: { lat: number; lon: number } | null }) {
   const map = useMap();
+  const lat = focus?.lat;
+  const lon = focus?.lon;
   useEffect(() => {
-    if (!focus) return;
-    const next = clampToThane(focus.lat, focus.lon);
-    map.flyTo([next.lat, next.lon], 14, { duration: 0.7 });
-  }, [focus, map]);
+    if (lat == null || lon == null) return;
+    const next = clampToThane(lat, lon);
+    map.whenReady(() => {
+      map.flyTo([next.lat, next.lon], 14, { duration: 0.7 });
+    });
+  }, [lat, lon, map]);
   return null;
 }
 
-function LockToThane() {
+function LockToThane({ skipFit }: { skipFit: boolean }) {
   const map = useMap();
+  const skipFitRef = useRef(skipFit);
   useEffect(() => {
     const bounds = L.latLngBounds(THANE_MAP_BOUNDS);
     const lockZoom = () => map.setMinZoom(map.getBoundsZoom(bounds, false));
     lockZoom();
-    map.fitBounds(bounds, { animate: false });
+    if (!skipFitRef.current) {
+      map.fitBounds(bounds, { animate: false });
+    }
     map.on('resize', lockZoom);
     return () => {
       map.off('resize', lockZoom);
@@ -215,6 +223,7 @@ export default function HeatMap({
   showGrid,
   opacity,
   focus,
+  preserveView = false,
   selected,
   onPointSelect,
 }: HeatMapProps) {
@@ -299,7 +308,7 @@ export default function HeatMap({
         />
       )}
 
-      <LockToThane />
+      <LockToThane skipFit={preserveView} />
       <ClickHandler onPointSelect={onPointSelect} />
       <FlyTo focus={focus} />
     </MapContainer>
