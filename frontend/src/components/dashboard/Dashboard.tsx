@@ -7,7 +7,7 @@ import { todayPlan } from '@/lib/advice';
 import { fetchPointTemp } from '@/lib/api';
 import { mergeThanePlaces, resolvePlace, rowsForArea } from '@/lib/places';
 import { GridRankItem, Neighborhood } from '@/lib/types';
-import { formatCoord, formatTemp, heatBand, mean, riskClass } from '@/lib/utils';
+import { mapHref } from '@/lib/nav';
 import { PageHeader } from '../PageHeader';
 import { PlaceSearch } from '../PlaceSearch';
 import { SourceNote } from '../SourceNote';
@@ -192,7 +192,7 @@ export function Dashboard() {
                         {item.ndvi_index === null ? 'Not available' : `NDVI ${item.ndvi_index.toFixed(2)}`}
                       </td>
                       <td className="px-5 py-4 text-right">
-                        <Link href={`/map?lat=${item.latitude}&lon=${item.longitude}`} className="btn-ghost btn !min-h-10 !px-3 !text-sm">
+                        <Link href={mapHref(item.latitude, item.longitude)} className="btn-ghost btn !min-h-10 !px-3 !text-sm">
                           Open map
                         </Link>
                       </td>

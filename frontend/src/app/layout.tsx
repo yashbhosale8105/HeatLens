@@ -4,6 +4,7 @@ import { Fraunces, Source_Sans_3 } from 'next/font/google';
 import { Providers } from './providers';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { ScrollReset } from '@/components/ScrollReset';
 
 const display = Fraunces({
   subsets: ['latin'],
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to main content
         </a>
         <Providers>
+          <ScrollReset />
           <Header />
           <main id="main">{children}</main>
           <Footer />

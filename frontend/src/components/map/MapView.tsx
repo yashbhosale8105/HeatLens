@@ -27,11 +27,14 @@ export function MapView({ initialLat, initialLon }: MapViewProps) {
   const [showRaster, setShowRaster] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
   const [opacity, setOpacity] = useState(0.7);
-  const [focus, setFocus] = useState<{ lat: number; lon: number } | null>(
-    initialLat && initialLon ? { lat: initialLat, lon: initialLon } : null
-  );
+  const startCoords =
+    initialLat != null && initialLon != null && Number.isFinite(initialLat) && Number.isFinite(initialLon)
+      ? { lat: initialLat, lon: initialLon }
+      : null;
+  const [userFocus, setUserFocus] = useState<{ lat: number; lon: number } | null>(null);
+  const focus = userFocus ?? startCoords;
   const [selected, setSelected] = useState<PointTempData | null>(null);
-  const [querying, setQuerying] = useState(false);
+  const [querying, setQuerying] = useState(Boolean(startCoords));
   const [copied, setCopied] = useState(false);
   const places = useMemo(
     () =>
@@ -48,16 +51,22 @@ export function MapView({ initialLat, initialLon }: MapViewProps) {
 
   useEffect(() => {
     if (initialLat == null || initialLon == null) return;
-    const next = { lat: initialLat, lon: initialLon };
-    setFocus(next);
-    setQuerying(true);
-    fetchPointTemp(next.lat, next.lon)
-      .then(setSelected)
-      .finally(() => setQuerying(false));
+    if (!Number.isFinite(initialLat) || !Number.isFinite(initialLon)) return;
+    let cancelled = false;
+    fetchPointTemp(initialLat, initialLon)
+      .then((data) => {
+        if (!cancelled) setSelected(data);
+      })
+      .finally(() => {
+        if (!cancelled) setQuerying(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [initialLat, initialLon]);
 
   async function jumpTo(place: Neighborhood) {
-    setFocus({ lat: place.lat, lon: place.lon });
+    setUserFocus({ lat: place.lat, lon: place.lon });
     setQuerying(true);
     try {
       setSelected(await fetchPointTemp(place.lat, place.lon));
@@ -68,7 +77,7 @@ export function MapView({ initialLat, initialLon }: MapViewProps) {
 
   async function handleSelect(data: PointTempData) {
     setSelected(data);
-    setFocus({ lat: data.latitude, lon: data.longitude });
+    setUserFocus({ lat: data.latitude, lon: data.longitude });
   }
 
   return (
@@ -118,6 +127,7 @@ export function MapView({ initialLat, initialLon }: MapViewProps) {
             showGrid={showGrid}
             opacity={opacity}
             focus={focus}
+            preserveView={Boolean(startCoords)}
             selected={selected}
             onPointSelect={handleSelect}
           />
