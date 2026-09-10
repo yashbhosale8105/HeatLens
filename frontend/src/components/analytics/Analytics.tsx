@@ -7,6 +7,7 @@ import { fetchHistoricalTrends, getExportUrl } from '@/lib/api';
 import { HistoricalTrend } from '@/lib/types';
 import { useApp } from '@/app/providers';
 import { mapHref } from '@/lib/nav';
+import { formatTemp, heatBand, HEAT_BANDS, mean } from '@/lib/utils';
 import { SourceNote } from '../SourceNote';
 import { Spinner } from '../ui/Spinner';
 

@@ -8,6 +8,7 @@ import { fetchPointTemp } from '@/lib/api';
 import { mergeThanePlaces, resolvePlace, rowsForArea } from '@/lib/places';
 import { GridRankItem, Neighborhood } from '@/lib/types';
 import { mapHref } from '@/lib/nav';
+import { formatCoord, formatTemp, heatBand, mean, riskClass } from '@/lib/utils';
 import { PageHeader } from '../PageHeader';
 import { PlaceSearch } from '../PlaceSearch';
 import { SourceNote } from '../SourceNote';
