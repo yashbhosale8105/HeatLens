@@ -340,7 +340,7 @@ input {
 .nav-overlay {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: 9999;
   background: #140c08;
   color: #fffaf5;
   padding: 2.5rem 1.5rem 2rem;

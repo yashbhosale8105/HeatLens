@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useId, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useApp } from '@/app/providers';
 import { isActivePath, NAV_LINKS } from '@/lib/nav';
 import { formatTemp, riskClass } from '@/lib/utils';
@@ -18,13 +19,6 @@ export function Header() {
   const { weather, loading, lastUpdated, refresh } = useApp();
   const [open, setOpen] = useState(false);
   const menuId = useId();
-
-  useEffect(() => {
-    document.body.style.overflow = open ? 'hidden' : '';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -116,47 +110,50 @@ export function Header() {
         </div>
       </header>
 
-      {open && (
-        <div className="nav-overlay" id={menuId} role="dialog" aria-modal="true" aria-label="Site menu">
-          <button type="button" className="nav-overlay-close" aria-label="Close" onClick={() => setOpen(false)}>
-            ×
-          </button>
-          <div className="nav-overlay-grid">
-            <div className="nav-overlay-aside">
-              <p className="kicker">Quick actions</p>
-              <ul className="mt-3 space-y-2">
-                {QUICK_ACTIONS.map((action) => (
-                  <li key={action.href}>
-                    <button type="button" className="nav-overlay-action" onClick={() => go(action.href)}>
-                      {action.label}
+      {open &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div className="nav-overlay" id={menuId} role="dialog" aria-modal="true" aria-label="Site menu">
+            <button type="button" className="nav-overlay-close" aria-label="Close" onClick={() => setOpen(false)}>
+              ×
+            </button>
+            <div className="nav-overlay-grid">
+              <div className="nav-overlay-aside">
+                <p className="kicker">Quick actions</p>
+                <ul className="mt-3 space-y-2">
+                  {QUICK_ACTIONS.map((action) => (
+                    <li key={action.href}>
+                      <button type="button" className="nav-overlay-action" onClick={() => go(action.href)}>
+                        {action.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <p className="kicker mt-8">On this page</p>
+                <button type="button" className="nav-overlay-action mt-3" onClick={() => go('#main')}>
+                  Jump to content
+                </button>
+              </div>
+              <nav className="nav-overlay-links" aria-label="Pages">
+                {NAV_LINKS.map((link) => {
+                  const active = isActivePath(pathname, link.href);
+                  return (
+                    <button
+                      key={link.href}
+                      type="button"
+                      className="nav-overlay-link"
+                      aria-current={active ? 'page' : undefined}
+                      onClick={() => go(link.href)}
+                    >
+                      {link.label}
                     </button>
-                  </li>
-                ))}
-              </ul>
-              <p className="kicker mt-8">On this page</p>
-              <button type="button" className="nav-overlay-action mt-3" onClick={() => go('#main')}>
-                Jump to content
-              </button>
+                  );
+                })}
+              </nav>
             </div>
-            <nav className="nav-overlay-links" aria-label="Pages">
-              {NAV_LINKS.map((link) => {
-                const active = isActivePath(pathname, link.href);
-                return (
-                  <button
-                    key={link.href}
-                    type="button"
-                    className="nav-overlay-link"
-                    aria-current={active ? 'page' : undefined}
-                    onClick={() => go(link.href)}
-                  >
-                    {link.label}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 }
