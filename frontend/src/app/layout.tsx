@@ -34,7 +34,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin=""
         />
       </head>
-      <body>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;document.querySelectorAll('.nav-toggle-input:checked').forEach(function(el){el.checked=false;});},true);",
+          }}
+        />
         <a className="skip-link" href="#main">
           Skip to main content
         </a>

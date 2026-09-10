@@ -26,17 +26,6 @@ export function Header() {
     closeMenu(menuId);
   }, [pathname, menuId]);
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      document.querySelectorAll<HTMLInputElement>('.nav-toggle-input:checked').forEach((box) => {
-        box.checked = false;
-      });
-    };
-    document.addEventListener('keydown', onKey, true);
-    return () => document.removeEventListener('keydown', onKey, true);
-  }, []);
-
   return (
     <>
       <input type="checkbox" id={menuId} className="nav-toggle-input" />
@@ -102,6 +91,7 @@ export function Header() {
       </header>
 
       <div className="nav-overlay" role="dialog" aria-label="Site menu">
+        <label htmlFor={menuId} className="nav-overlay-backdrop" aria-label="Close menu" />
         <label htmlFor={menuId} className="nav-overlay-close" aria-label="Close">
           ×
         </label>

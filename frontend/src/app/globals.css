@@ -372,6 +372,18 @@ input {
   overflow: auto;
 }
 
+.nav-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.nav-overlay-grid,
+.nav-overlay-close {
+  position: relative;
+  z-index: 1;
+}
+
 .nav-toggle-input:checked ~ .nav-overlay {
   display: block;
 }
